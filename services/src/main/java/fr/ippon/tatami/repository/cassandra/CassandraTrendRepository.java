@@ -73,11 +73,12 @@ public class CassandraTrendRepository implements TrendRepository {
                 .get();
 
         List<String> result = new ArrayList<String>();
-        String tag;
-        for (HColumn<UUID, String> column : query.getColumns()) {
-            tag = column.getValue();
+
+        query.getColumns().forEach(column -> {
+            String tag = column.getValue();
             result.add(tag);
-        }
+        });
+
         return result;
     }
 
@@ -94,11 +95,12 @@ public class CassandraTrendRepository implements TrendRepository {
                 .get();
 
         final Map<String, String> result = new HashMap<String, String>();
-        String tag;
-        for (HColumn<UUID, String> column : query.getColumns()) {
-            tag = column.getValue();
+
+        query.getColumns().forEach(column -> {
+            String tag = column.getValue();
             result.put(tag.toLowerCase(), tag);
-        }
+        });
+
         return result.values();
     }
 

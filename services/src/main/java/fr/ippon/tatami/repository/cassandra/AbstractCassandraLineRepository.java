@@ -61,9 +61,8 @@ public abstract class AbstractCassandraLineRepository {
      */
     protected void removeStatuses(String key, String cf, Collection<String> statusIdsToDelete) {
         Mutator<String> mutator = HFactory.createMutator(keyspaceOperator, StringSerializer.get());
-        for (String statusId : statusIdsToDelete) {
-            mutator.addDeletion(key, cf, UUID.fromString(statusId), UUIDSerializer.get());
-        }
+        statusIdsToDelete.forEach(statusId -> mutator.addDeletion(key, cf, UUID.fromString(statusId), UUIDSerializer.get()));
+
         mutator.execute();
     }
 
@@ -106,9 +105,8 @@ public abstract class AbstractCassandraLineRepository {
         }
 
         List<String> line = new ArrayList<String>();
-        for (HColumn<UUID, String> column : result) {
-            line.add(column.getName().toString());
-        }
+        result.forEach(column -> line.add(column.getName().toString()));
+
         return line;
     }
 

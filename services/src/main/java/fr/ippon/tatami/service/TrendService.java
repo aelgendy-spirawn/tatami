@@ -82,7 +82,7 @@ public class TrendService {
         }
         List<String> mostUsedTags = findMostUsedKeys(totalTagsCount);
         List<Trend> trends = new ArrayList<Trend>();
-        for (String tag : mostUsedTags) {
+        mostUsedTags.forEach(tag -> {
             Trend trend = new Trend();
             trend.setTag(tag);
             Integer recentCount = recentTagsCount.get(tag);
@@ -101,7 +101,8 @@ public class TrendService {
                 trend.setTrendingUp(true);
             }
             trends.add(trend);
-        }
+        });
+
         if (trends.size() > TRENDS_SIZE) {
             return trends.subList(0, TRENDS_SIZE);
         } else {

@@ -50,9 +50,8 @@ public abstract class AbstractCassandraFriendRepository {
     List<String> findFriends(String key) {
         ColumnFamilyResult<String, String> result = friendsTemplate.queryColumns(key);
         List<String> friends = new ArrayList<String>();
-        for (String columnName : result.getColumnNames()) {
-            friends.add(columnName);
-        }
+        result.getColumnNames().forEach(columnName -> friends.add(columnName));
+
         return friends;
     }
 

@@ -61,9 +61,8 @@ public class CassandraSharesRepository implements SharesRepository {
                 .get();
 
         Collection<String> sharedByLogins = new LinkedHashSet<String>();
-        for (HColumn<Long, String> column : result.getColumns()) {
-            sharedByLogins.add(column.getValue());
-        }
+        result.getColumns().forEach(column -> sharedByLogins.add(column.getValue()));
+
         return sharedByLogins;
     }
 

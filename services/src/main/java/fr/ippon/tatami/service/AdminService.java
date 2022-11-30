@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static fr.ippon.tatami.config.ColumnFamilyKeys.STATUS_CF;
 import static me.prettyprint.hector.api.factory.HFactory.createRangeSlicesQuery;
@@ -112,12 +113,12 @@ public class AdminService {
         log.debug("Rebuilding the user & group Indexes");
         long fullIndexStartTime = Calendar.getInstance().getTimeInMillis();
         Collection<Domain> domains = domainRepository.getAllDomains();
-        int groupCount = 0;
-        for (Domain domain : domains) {
+        AtomicInteger groupCount = new AtomicInteger();
+        domains.forEach(domain -> {
             log.debug("Indexing domain: " + domain.getName());
             List<String> logins = domainRepository.getLoginsInDomain(domain.getName());
             Collection<User> users = new ArrayList<User>();
-            for (String login : logins) {
+            logins.forEach(login -> {
                 User user = userRepository.findUserByLogin(login);
                 if (user == null) {
                     log.warn("User defined in domain was not found in the user respository: " + login);
@@ -125,15 +126,15 @@ public class AdminService {
                     log.debug("Indexing user: {}", login);
                     users.add(user);
                     Collection<Group> groups = groupService.getGroupsWhereUserIsAdmin(user);
-                    for (Group group : groups) {
+                    groups.forEach(group -> {
                         searchService.addGroup(group);
-                        groupCount++;
-                    }
+                        groupCount.getAndIncrement();
+                    });
                 }
-            }
+            });
             searchService.addUsers(users);
             log.info("The search engine indexed " + logins.size() + " users.");
-        }
+        });
         log.info("The search engine indexed " + groupCount + " groups.");
 
         //Rebuild the status Index
@@ -158,7 +159,7 @@ public class AdminService {
                 moreStatus = false;
             }
             Collection<Status> statuses = new ArrayList<Status>();
-            for (Row<String, String, String> row : rows) {
+            rows.forEach(row -> {
                 AbstractStatus abstractStatus = statusRepository.findStatusById(row.getKey()); // This makes 2 calls to the same row
                 if (abstractStatus != null && // if a status has been removed, it is returned as null
                         abstractStatus.getType().equals(StatusType.STATUS)) { // Only index standard statuses
@@ -168,7 +169,7 @@ public class AdminService {
                         statuses.add(status);
                     }
                 }
-            }
+            });
             searchService.addStatuses(statuses); // This should be batched for optimum performance
             log.info("The search engine indexed " + statuses.size() + " statuses in " + (Calendar.getInstance().getTimeInMillis() - startTime) + " ms.");
         }

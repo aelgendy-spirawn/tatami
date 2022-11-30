@@ -62,8 +62,7 @@ public class SyndicView extends AbstractRssFeedView {
             return items;
         }
         String statusBaseLink = (String) model.get("statusBaseLink");
-        for (StatusDTO tempContent : listContent) {
-
+        listContent.forEach(tempContent -> {
             Item item = new Item();
 
             String statusText = tempContent.getContent();
@@ -90,7 +89,8 @@ public class SyndicView extends AbstractRssFeedView {
             item.setPubDate(tempContent.getStatusDate());
 
             items.add(item);
-        }
+        });
+
         return items;
     }
 

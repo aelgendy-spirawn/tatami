@@ -63,9 +63,8 @@ public class CassandraFavoritelineRepository implements FavoritelineRepository {
                 .execute()
                 .get();
 
-        for (HColumn<UUID, String> column : result.getColumns()) {
-            line.add(column.getName().toString());
-        }
+        result.getColumns().forEach(column -> line.add(column.getName().toString()));
+
         return line;
     }
 

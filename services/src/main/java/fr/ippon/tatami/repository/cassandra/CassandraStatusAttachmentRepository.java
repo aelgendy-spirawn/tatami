@@ -68,9 +68,8 @@ public class CassandraStatusAttachmentRepository
     public Collection<String> findAttachmentIds(String statusId) {
         ColumnFamilyResult<String, UUID> result = attachmentsTemplate.queryColumns(statusId);
         Collection<String> attachmentIds = new ArrayList<String>();
-        for (UUID columnName : result.getColumnNames()) {
-            attachmentIds.add(columnName.toString());
-        }
+        result.getColumnNames().forEach(columnName -> attachmentIds.add(columnName.toString()));
+
         return attachmentIds;
     }
 }

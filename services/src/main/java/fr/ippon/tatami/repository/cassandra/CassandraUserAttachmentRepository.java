@@ -90,11 +90,8 @@ public class CassandraUserAttachmentRepository
         }
 
         Collection<String> attachmentIds = new ArrayList<String>();
-        int index = 0;
-        for (HColumn<UUID, Long> column : result) {
-            attachmentIds.add(column.getName().toString());
-            index++;
-        }
+        result.forEach(column -> attachmentIds.add(column.getName().toString()));
+
         return attachmentIds;
     }
 
@@ -102,9 +99,7 @@ public class CassandraUserAttachmentRepository
     public Collection<String> findAttachmentIds(String login) {
         ColumnFamilyResult<String, UUID> result = attachmentsTemplate.queryColumns(login);
         Collection<String> attachmentIds = new ArrayList<String>();
-        for (UUID columnName : result.getColumnNames()) {
-            attachmentIds.add(columnName.toString());
-        }
+        result.getColumnNames().forEach(columnName -> attachmentIds.add(columnName.toString()));
         return attachmentIds;
     }
 }

@@ -94,9 +94,8 @@ public class CassandraDomainRepository implements DomainRepository {
                 .execute()
                 .get();
 
-        for (HColumn<String, String> column : result.getColumns()) {
-            logins.add(column.getName());
-        }
+        result.getColumns().forEach(column -> logins.add(column.getName()));
+
         return logins;
     }
 
@@ -111,13 +110,14 @@ public class CassandraDomainRepository implements DomainRepository {
 
         QueryResult<OrderedRows<String, String, String>> result = query.execute();
         List<Row<String, String, String>> rows = result.get().getList();
-        for (Row<String, String, String> row : rows) {
+        rows.forEach(row -> {
             Domain domain = new Domain();
             domain.setName(row.getKey());
             domain.setNumberOfUsers(row.getColumnSlice().getColumns().size());
 
             domains.add(domain);
-        }
+        });
+
         return domains;
     }
 }

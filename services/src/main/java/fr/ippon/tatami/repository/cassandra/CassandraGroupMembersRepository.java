@@ -64,9 +64,8 @@ public class CassandraGroupMembersRepository implements GroupMembersRepository {
                 .execute()
                 .get();
 
-        for (HColumn<String, String> column : result.getColumns()) {
-            members.put(column.getName(), column.getValue());
-        }
+        result.getColumns().forEach(column -> members.put(column.getName(), column.getValue()));
+
         return members;
     }
 }

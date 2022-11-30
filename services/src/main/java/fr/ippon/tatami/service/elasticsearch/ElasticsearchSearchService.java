@@ -70,12 +70,12 @@ public class ElasticsearchSearchService implements SearchService {
 
     @PostConstruct
     private void init() {
-        for (String type : TYPES) {
+        TYPES.forEach(type -> {
             if (!client().admin().indices().prepareExists(indexName(type)).execute().actionGet().exists()) {
                 log.info("Index {} does not exists in Elasticsearch, creating it!", indexName(type));
                 createIndex();
             }
-        }
+        });
     }
 
     @Override
@@ -367,9 +367,7 @@ public class ElasticsearchSearchService implements SearchService {
     public Collection<Group> searchGroupByPrefix(String domain, String prefix, int size) {
         Collection<String> ids = searchByPrefix(domain, prefix, size, groupMapper);
         List<Group> groups = new ArrayList<Group>(ids.size());
-        for (String id : ids) {
-            groups.add(groupDetailsRepository.getGroupDetails(id));
-        }
+        ids.forEach(id -> groups.add(groupDetailsRepository.getGroupDetails(id)));
         return groups;
     }
 
@@ -424,7 +422,7 @@ public class ElasticsearchSearchService implements SearchService {
         String type = adapter.type();
         BulkRequestBuilder request = client().prepareBulk();
 
-        for (T object : collection) {
+        collection.forEach(object -> {
             String id = adapter.id(object);
             try {
                 XContentBuilder source = adapter.toJson(object);
@@ -434,7 +432,7 @@ public class ElasticsearchSearchService implements SearchService {
             } catch (IOException e) {
                 log.error("The " + type + " of id " + id + " wasn't indexed", e);
             }
-        }
+        });
 
         log.debug("Ready to index {} {} into Elasticsearch.", collection.size(), type);
 

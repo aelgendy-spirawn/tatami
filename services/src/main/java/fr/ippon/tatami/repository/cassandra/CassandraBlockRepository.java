@@ -60,9 +60,8 @@ public class CassandraBlockRepository implements BlockRepository {
     public Collection<String> getUsersBlockedBy(String userLogin) {
         ColumnFamilyResult<String, String> result = blockedUsersTemplate.queryColumns(userLogin);
         Collection<String> blockedUsers = new ArrayList<String>();
-        for (String columnName : result.getColumnNames()) {
-            blockedUsers.add(columnName);
-        }
+        result.getColumnNames().forEach(columnName -> blockedUsers.add(columnName));
+
         return blockedUsers;
     }
 

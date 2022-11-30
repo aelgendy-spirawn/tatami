@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Manages the tag memberships.
@@ -55,13 +56,14 @@ public class TagMembershipService {
     public boolean unfollowTag(Tag tag) {
         log.debug("Removing followed tag : {}", tag);
         User currentUser = authenticationService.getCurrentUser();
-        boolean tagAlreadyFollowed = false;
-        for (String alreadyFollowingTest : userTagRepository.findTags(currentUser.getLogin())) {
+        AtomicBoolean tagAlreadyFollowed = new AtomicBoolean(false);
+        userTagRepository.findTags(currentUser.getLogin()).forEach(alreadyFollowingTest -> {
             if (alreadyFollowingTest.equals(tag.getName())) {
-                tagAlreadyFollowed = true;
+                tagAlreadyFollowed.set(true);
             }
-        }
-        if (tagAlreadyFollowed) {
+        });
+
+        if (tagAlreadyFollowed.get()) {
             String domain = DomainUtil.getDomainFromLogin(currentUser.getLogin());
             userTagRepository.removeTag(currentUser.getLogin(), tag.getName());
             tagFollowerRepository.removeFollower(domain, tag.getName(), currentUser.getLogin());

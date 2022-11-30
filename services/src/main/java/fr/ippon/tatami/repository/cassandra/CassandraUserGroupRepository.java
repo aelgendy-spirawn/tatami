@@ -65,9 +65,7 @@ public class CassandraUserGroupRepository implements UserGroupRepository {
                 .execute()
                 .get();
 
-        for (HColumn<String, String> column : result.getColumns()) {
-            groups.add(column.getName());
-        }
+        result.getColumns().forEach(column -> groups.add(column.getName()));
         return groups;
     }
 
@@ -82,11 +80,11 @@ public class CassandraUserGroupRepository implements UserGroupRepository {
                 .execute()
                 .get();
 
-        for (HColumn<String, String> column : result.getColumns()) {
+        result.getColumns().forEach(column -> {
             if (column.getValue() != null && column.getValue().equals(GroupRoles.ADMIN)) {
                 groups.add(column.getName());
             }
-        }
+        });
         return groups;
     }
 }

@@ -36,13 +36,7 @@ public class DomainConfiguration implements Serializable {
         public static String IPPONSUSCRIPTION = "-1";
                 
         static{
-            InputStream inputStream=null;
-            try{
-            	
-                
-                
-                inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("META-INF/tatami/tatami.properties");
-                
+            try(InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("META-INF/tatami/tatami.properties")) {
                 Properties props = new Properties();
                 props.load(inputStream);
 			    
@@ -65,9 +59,6 @@ public class DomainConfiguration implements Serializable {
                 
             } catch(IOException e){
                 throw new IllegalStateException(e);
-            }finally{
-                // apache commons / IO
-                IOUtils.closeQuietly(inputStream);
             }
         }
         

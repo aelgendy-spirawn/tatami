@@ -14,6 +14,7 @@ import fr.ippon.tatami.domain.status.*;
 
 import javax.inject.Inject;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Manages the timeline.
@@ -171,9 +172,8 @@ public class TimelineService {
 
         // Transform the Set to a Map<String, String>
         List<String> line = new ArrayList<String>();
-        for (String statusIdInDiscussion : statusIdsInDiscussion) {
-            line.add(statusIdInDiscussion);
-        }
+        statusIdsInDiscussion.forEach(statusIdInDiscussion -> line.add(statusIdInDiscussion));
+
         // Enrich the details object with the complete statuses in the discussion
         Collection<StatusDTO> statusesInDiscussion = buildStatusList(line);
         details.setDiscussionStatuses(statusesInDiscussion);
@@ -193,16 +193,18 @@ public class TimelineService {
             favoriteLine = Collections.emptyList();
         }
         Collection<StatusDTO> statuses = new ArrayList<StatusDTO>(line.size());
-        for (String statusId : line) {
+
+        User finalCurrentUser = currentUser;
+        line.forEach(statusId -> {
             AbstractStatus abstractStatus = statusRepository.findStatusById(statusId);
             if (abstractStatus != null) {
                 User statusUser = userService.getUserByLogin(abstractStatus.getLogin());
                 if (statusUser != null) {
                     // Security check
-                    // bypass the security check when no user is logged in 
-                    // => for non-authenticated rss access 
-                    if ((currentUser != null) && !statusUser.getDomain().equals(currentUser.getDomain())) {
-                        throw new DomainViolationException("User " + currentUser + " tried to access " +
+                    // bypass the security check when no user is logged in
+                    // => for non-authenticated rss access
+                    if ((finalCurrentUser != null) && !statusUser.getDomain().equals(finalCurrentUser.getDomain())) {
+                        throw new DomainViolationException("User " + finalCurrentUser + " tried to access " +
                                 " status : " + abstractStatus);
                     }
 
@@ -271,10 +273,9 @@ public class TimelineService {
             } else {
                 log.debug("Deleted status : {}", statusId);
             }
-        }
+        });
 
-        for(StatusDTO statusDTO : statuses)
-            statusDTO.setShareByMe(shareByMe(statusDTO));
+        statuses.forEach(statusDTO -> statusDTO.setShareByMe(shareByMe(statusDTO)));
 
         return statuses;
     }
@@ -304,17 +305,18 @@ public class TimelineService {
      */
     private Collection<String> findStatusesToCleanUp(List<String> statuses, Collection<StatusDTO> dtos) {
         Collection<String> statusIdsToCleanUp = new ArrayList<String>();
-        for (String statusId : statuses) {
-            boolean statusToDelete = true;
-            for (StatusDTO statusDTO : dtos) {
+        statuses.forEach(statusId -> {
+            AtomicBoolean statusToDelete = new AtomicBoolean(true);
+            dtos.forEach(statusDTO -> {
                 if (statusDTO.getStatusId().equals(statusId)) {
-                    statusToDelete = false;
+                    statusToDelete.set(false);
                 }
-            }
-            if (statusToDelete) {
+            });
+
+            if (statusToDelete.get()) {
                 statusIdsToCleanUp.add(statusId);
             }
-        }
+        });
         return statusIdsToCleanUp;
     }
 
@@ -572,9 +574,8 @@ public class TimelineService {
         shareStatusToTimelineAndNotify(currentLogin, currentLogin, share);
         // add status to the follower's timelines
         Collection<String> followersForUser = followerRepository.findFollowersForUser(currentLogin);
-        for (String followerLogin : followersForUser) {
-            shareStatusToTimelineAndNotify(currentLogin, followerLogin, share);
-        }
+        followersForUser.forEach(followerLogin -> shareStatusToTimelineAndNotify(currentLogin, followerLogin, share));
+
         // update the status details to add this share
         sharesRepository.newShareByLogin(status.getStatusId(), currentLogin);
         // mention the status' author that the user has shared his status
@@ -638,9 +639,7 @@ public class TimelineService {
         String domain = DomainUtil.getDomainFromLogin(currentLogin);
         List<String> logins = domainRepository.getLoginsInDomain(domain);
         timelineRepository.announceStatusToTimeline(currentLogin, logins, announcement);
-        for (String login : logins) {
-            atmosphereService.notifyUser(login, announcement);
-        }
+        logins.forEach(login -> atmosphereService.notifyUser(login, announcement));
     }
 
     /**
@@ -654,9 +653,7 @@ public class TimelineService {
         Collection<StatusDTO> dtos = buildStatusList(statuses);
         if (statuses.size() != dtos.size()) {
             Collection<String> statusIdsToDelete = findStatusesToCleanUp(statuses, dtos);
-            for (String statusId : statusIdsToDelete) {
-                favoritelineRepository.removeStatusFromFavoriteline(currentLogin, statusId);
-            }
+            statusIdsToDelete.forEach(statusId -> favoritelineRepository.removeStatusFromFavoriteline(currentLogin, statusId));
             return getFavoritesline();
         }
         dtos = filterStatusFromBlockedUsers(dtos);
@@ -678,11 +675,12 @@ public class TimelineService {
             String domain = DomainUtil.getDomainFromLogin(currentLogin);
             Collection<String> blockedUsers = blockService.getUsersBlockedLoginForUser(currentLogin);
             Collection<StatusDTO> newDtos = new ArrayList<StatusDTO>();
-            for (StatusDTO dto : dtos) {
+            dtos.forEach(dto -> {
                 if (!blockedUsers.contains(dto.getUsername() + "@" + domain)) {
                     newDtos.add(dto);
                 }
-            }
+            });
+
             return newDtos;
         }
         return dtos;

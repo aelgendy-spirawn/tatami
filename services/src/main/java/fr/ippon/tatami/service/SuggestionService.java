@@ -47,23 +47,25 @@ public class SuggestionService {
         Map<String, Integer> userCount = new HashMap<String, Integer>();
         List<String> friendIds = friendshipService.getFriendIdsForUser(login);
         List<String> sampleFriendIds = reduceCollectionSize(friendIds, SAMPLE_SIZE);
-        for (String friendId : sampleFriendIds) {
+        sampleFriendIds.forEach(friendId -> {
             List<String> friendsOfFriend = friendshipService.getFriendIdsForUser(friendId);
             friendsOfFriend = reduceCollectionSize(friendsOfFriend, SUB_SAMPLE_SIZE);
-            for (String friendOfFriend : friendsOfFriend) {
+            friendsOfFriend.forEach(friendOfFriend -> {
                 if (!friendIds.contains(friendOfFriend) && !friendOfFriend.equals(login)) {
                     incrementKeyCounterInMap(userCount, friendOfFriend);
                 }
-            }
-        }
+            });
+        });
+
         List<String> mostFollowedUsers = findMostUsedKeys(userCount);
         List<User> userSuggestions = new ArrayList<User>();
-        for (String mostFollowedUser : mostFollowedUsers) {
+        mostFollowedUsers.forEach(mostFollowedUser -> {
             User suggestion = userService.getUserByLogin(mostFollowedUser);
             if ( suggestion.getActivated() ){
                 userSuggestions.add(suggestion);
             }
-        }
+        });
+
         if (userSuggestions.size() > SUGGESTIONS_SIZE) {
             return userSuggestions.subList(0, SUGGESTIONS_SIZE);
         } else {
@@ -77,29 +79,30 @@ public class SuggestionService {
         List<String> groupIds = userGroupRepository.findGroups(login);
         List<String> friendIds = friendshipService.getFriendIdsForUser(login);
         friendIds = reduceCollectionSize(friendIds, SAMPLE_SIZE);
-        for (String friendId : friendIds) {
+        friendIds.forEach(friendId -> {
             List<String> groupsOfFriend = userGroupRepository.findGroups(friendId);
-            for (String groupOfFriend : groupsOfFriend) {
+            groupsOfFriend.forEach(groupOfFriend -> {
                 if (!groupIds.contains(groupOfFriend)) {
                     incrementKeyCounterInMap(groupCount, groupOfFriend);
                 }
-            }
-        }
+            });
+        });
+
         List<String> mostFollowedGroups = findMostUsedKeys(groupCount);
         List<Group> groupSuggestions = new ArrayList<Group>();
         String domain = DomainUtil.getDomainFromLogin(login);
-        for (String mostFollowedGroup : mostFollowedGroups) {
+        mostFollowedGroups.forEach(mostFollowedGroup -> {
             Group suggestion = groupService.getGroupById(domain, mostFollowedGroup);
             if (suggestion.isPublicGroup()) { // Only suggest public groups for the moment
                 groupSuggestions.add(suggestion);
             }
-        }
+        });
+
         if (groupSuggestions.size() > SUGGESTIONS_SIZE) {
             return groupSuggestions.subList(0, SUGGESTIONS_SIZE);
         } else {
             return groupSuggestions;
         }
     }
-
 
 }

@@ -72,7 +72,7 @@ public class CassandraGroupDetailsRepository implements GroupDetailsRepository {
                 .execute()
                 .get();
 
-        for (HColumn<String, String> column : result.getColumns()) {
+        result.getColumns().forEach(column -> {
             if (column.getName().equals(NAME)) {
                 group.setName(column.getValue());
             } else if (column.getName().equals(DESCRIPTION)) {
@@ -86,7 +86,8 @@ public class CassandraGroupDetailsRepository implements GroupDetailsRepository {
                     group.setArchivedGroup(true);
                 }
             }
-        }
+        });
+
         return group;
     }
 }

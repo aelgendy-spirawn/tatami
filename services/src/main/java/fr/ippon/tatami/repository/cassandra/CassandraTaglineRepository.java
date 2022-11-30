@@ -40,14 +40,14 @@ public class CassandraTaglineRepository extends AbstractCassandraLineRepository 
     @Override
     public void removeStatusesFromTagline(String tag, String domain, Collection<String> statusIdsToDelete) {
         Mutator<String> mutator = HFactory.createMutator(keyspaceOperator, StringSerializer.get());
-        for (String statusId : statusIdsToDelete) {
+        statusIdsToDelete.forEach(statusId -> {
             mutator.addDeletion(
                     getKey(domain, tag),
                     TAGLINE_CF,
                     UUID.fromString(statusId),
                     UUIDSerializer.get());
+        });
 
-        }
         mutator.execute();
 
     }

@@ -64,9 +64,8 @@ public class CassandraAppleDeviceRepository implements AppleDeviceRepository {
                 .execute()
                 .get();
 
-        for (HColumn<String, String> column : result.getColumns()) {
-            deviceIds.add(column.getName());
-        }
+        result.getColumns().forEach(column -> deviceIds.add(column.getName()));
+
         return deviceIds;
     }
 

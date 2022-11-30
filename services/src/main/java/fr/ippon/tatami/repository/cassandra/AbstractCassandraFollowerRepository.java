@@ -50,9 +50,8 @@ public abstract class AbstractCassandraFollowerRepository {
     Collection<String> findFollowers(String key) {
         ColumnFamilyResult<String, String> result = template.queryColumns(key);
         Collection<String> followers = new ArrayList<String>();
-        for (String columnName : result.getColumnNames()) {
-            followers.add(columnName);
-        }
+        result.getColumnNames().forEach(columnName -> followers.add(columnName));
+
         return followers;
     }
 

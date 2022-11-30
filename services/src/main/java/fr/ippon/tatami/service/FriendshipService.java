@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Manages the user's frienships.
@@ -104,13 +105,14 @@ public class FriendshipService {
     public boolean unfollowUser(User currentUser, User userToUnfollow) {
         if (userToUnfollow != null) {
             String loginToUnfollow = userToUnfollow.getLogin();
-            boolean userAlreadyFollowed = false;
-            for (String alreadyFollowingTest : friendRepository.findFriendsForUser(currentUser.getLogin())) {
+            AtomicBoolean userAlreadyFollowed = new AtomicBoolean(false);
+            friendRepository.findFriendsForUser(currentUser.getLogin()).forEach(alreadyFollowingTest -> {
                 if (alreadyFollowingTest.equals(loginToUnfollow)) {
-                    userAlreadyFollowed = true;
+                    userAlreadyFollowed.set(true);
                 }
-            }
-            if (userAlreadyFollowed) {
+            });
+
+            if (userAlreadyFollowed.get()) {
                 friendRepository.removeFriend(currentUser.getLogin(), loginToUnfollow);
                 counterRepository.decrementFriendsCounter(currentUser.getLogin());
                 followerRepository.removeFollower(loginToUnfollow, currentUser.getLogin());
@@ -140,10 +142,10 @@ public class FriendshipService {
         String login = this.getLoginFromUsername(username);
         Collection<String> friendLogins = friendRepository.findFriendsForUser(login);
         Collection<User> friends = new ArrayList<User>();
-        for (String friendLogin : friendLogins) {
+        friendLogins.forEach(friendLogin -> {
             User friend = userRepository.findUserByLogin(friendLogin);
             friends.add(friend);
-        }
+        });
         return friends;
     }
 
@@ -151,10 +153,10 @@ public class FriendshipService {
         String login = this.getLoginFromUsername(username);
         Collection<String> followersLogins = followerRepository.findFollowersForUser(login);
         Collection<User> followers = new ArrayList<User>();
-        for (String followerLogin : followersLogins) {
+        followersLogins.forEach(followerLogin -> {
             User follower = userRepository.findUserByLogin(followerLogin);
             followers.add(follower);
-        }
+        });
         return followers;
     }
 

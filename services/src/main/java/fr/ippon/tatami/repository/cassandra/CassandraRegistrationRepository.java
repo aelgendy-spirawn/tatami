@@ -90,11 +90,12 @@ public class CassandraRegistrationRepository implements RegistrationRepository {
 
         List<HColumn<String, String>> columns = columnSlice.getColumns();
 
-        for (HColumn<String, String> hColumn : columns) {
+        columns.forEach(hColumn -> {
             // WARN : here we don't handle multiple registrationKey for one login
             registrationKeyByLogin.put(hColumn.getValue(), hColumn.getName());
             log.debug("Key={}|Value={}", hColumn.getValue(), hColumn.getName());
-        }
+        });
+
         return registrationKeyByLogin;
     }
 }

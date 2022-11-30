@@ -42,12 +42,12 @@ public class BlockService {
     public Collection<User> getUsersBlockedForUser(String login){
         Collection<String> blockedUsersLogins = getUsersBlockedLoginForUser(login);
         Collection<User> blockedUsers = new ArrayList<User>();
-        for (String blockedLogin : blockedUsersLogins) {
+        blockedUsersLogins.forEach(blockedLogin -> {
             User user = userRepository.findUserByLogin(blockedLogin);
             if(user != null){
                 blockedUsers.add(user);
             }
-        }
+        });
         log.debug("Getting users blocked by {}", login);
         return blockedUsers;
     }

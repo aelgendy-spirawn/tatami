@@ -109,13 +109,13 @@ public class UserService {
      */
     public Collection<User> getUsersByLogin(Collection<String> logins) {
         final Collection<User> users = new ArrayList<User>();
-        User user;
-        for (String login : logins) {
-            user = userRepository.findUserByLogin(login);
+        logins.forEach(login -> {
+            User user = userRepository.findUserByLogin(login);
             if (user != null) {
                 users.add(user);
             }
-        }
+        });
+
         return users;
     }
 
@@ -124,10 +124,11 @@ public class UserService {
         String domain = DomainUtil.getDomainFromLogin(currentUSer.getLogin());
         List<String> logins = domainRepository.getLoginsInDomain(domain, pagination);
         List<User> users = new ArrayList<User>();
-        for (String login : logins) {
+        logins.forEach(login -> {
             User user = getUserByLogin(login);
             users.add(user);
-        }
+        });
+
         return users;
     }
 
@@ -216,18 +217,20 @@ public class UserService {
     public void deleteUser(User user) {
         // Unfollow this user
         Collection<String> followersIds = friendshipService.getFollowerIdsForUser(user.getLogin());
-        for (String followerId : followersIds) {
+        followersIds.forEach(followerId -> {
             User follower = getUserByLogin(followerId);
             friendshipService.unfollowUser(follower, user);
-        }
+        });
+
         log.debug("Delete user step 1 : Unfollowed user " + user.getLogin());
 
         // Unfollow friends
         Collection<String> friendsIds = friendshipService.getFriendIdsForUser(user.getLogin());
-        for (String friendId : friendsIds) {
+        friendsIds.forEach(friendId -> {
             User friend = getUserByLogin(friendId);
             friendshipService.unfollowUser(user, friend);
-        }
+        });
+
         log.debug("Delete user step 2 : user " + user.getLogin() + " has no more friends.");
 
         // Delete userline, tagLine...
@@ -431,7 +434,7 @@ public class UserService {
         Collection<String> currentFollowersLogins = followerRepository.findFollowersForUser(currentUser.getLogin());
         Collection<String> currentBlockedUsersLogins = blockService.getUsersBlockedLoginForUser(currentUser.getLogin());
         Collection<UserDTO> userDTOs = new ArrayList<UserDTO>();
-        for (User user : users) {
+        users.forEach(user -> {
             UserDTO userDTO = getUserDTOFromUser(user);
             userDTO.setYou(user.equals(currentUser));
             if (!userDTO.isYou()) {
@@ -440,7 +443,8 @@ public class UserService {
                 userDTO.setBlocked(currentBlockedUsersLogins.contains(user.getLogin()));
             }
             userDTOs.add(userDTO);
-        }
+        });
+
         return userDTOs;
     }
 

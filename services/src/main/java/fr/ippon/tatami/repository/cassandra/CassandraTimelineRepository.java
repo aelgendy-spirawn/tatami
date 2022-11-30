@@ -58,10 +58,8 @@ public class CassandraTimelineRepository extends AbstractCassandraLineRepository
     public void announceStatusToTimeline(String announcedByLogin, List<String> logins, Announcement announcement) {
         Mutator<String> mutator = HFactory.createMutator(keyspaceOperator, StringSerializer.get());
 
-        for (String login : logins) {
-            mutator.addInsertion(login, TIMELINE_CF, HFactory.createColumn(UUID.fromString(announcement.getStatusId()),
-                    "", UUIDSerializer.get(), StringSerializer.get()));
-        }
+        logins.forEach(login -> mutator.addInsertion(login, TIMELINE_CF, HFactory.createColumn(UUID.fromString(announcement.getStatusId()), "", UUIDSerializer.get(), StringSerializer.get())));
+
         mutator.execute();
     }
 

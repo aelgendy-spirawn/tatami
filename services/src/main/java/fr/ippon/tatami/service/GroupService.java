@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Service bean for managing groups.
@@ -81,7 +82,7 @@ public class GroupService {
         Map<String, String> membersMap = groupMembersRepository.findMembers(groupId);
         Collection<String> friendLogins = friendRepository.findFriendsForUser(login);
         Collection<UserGroupDTO> userGroupDTOs = new TreeSet<UserGroupDTO>();
-        for (Map.Entry<String, String> member : membersMap.entrySet()) {
+        membersMap.entrySet().forEach(member -> {
             UserGroupDTO dto = new UserGroupDTO();
             User user = userRepository.findUserByLogin(member.getKey());
             dto.setLogin(user.getLogin());
@@ -98,7 +99,7 @@ public class GroupService {
                 dto.setYou(true);
             }
             userGroupDTOs.add(dto);
-        }
+        });
         return userGroupDTOs;
     }
 
@@ -150,10 +151,10 @@ public class GroupService {
     private Collection<Group> getGroupDetails(User currentUser, Collection<String> groupIds) {
         String domain = DomainUtil.getDomainFromLogin(currentUser.getLogin());
         Collection<Group> groups = new TreeSet<Group>();
-        for (String groupId : groupIds) {
+        groupIds.forEach(groupId -> {
             Group group = internalGetGroupById(domain, groupId);
             groups.add(group);
-        }
+        });
         return groups;
     }
 
@@ -220,11 +221,7 @@ public class GroupService {
     }
 
     public Collection<Group> buildGroupList(User user, Collection<Group> groups) {
-
-        for (Group group : groups) {
-            buildGroup(user, group);
-        }
-
+        groups.forEach(group -> buildGroup(user, group));
         return groups;
     }
 
@@ -282,22 +279,20 @@ public class GroupService {
                     group.setMember(true); // Since a group was found, we know the user is a member
                 }
             }
-            long counter = 0;
-            for ( UserGroupDTO userGroup :  getMembersForGroup(group.getGroupId(),authenticationService.getCurrentUser().getLogin()) ) {
+            AtomicLong counter = new AtomicLong();
+            getMembersForGroup(group.getGroupId(), authenticationService.getCurrentUser().getLogin()).forEach(userGroup -> {
                 if(userGroup.isActivated()) {
-                    counter++;
+                    counter.getAndIncrement();
                 }
-            }
-            group.setCounter(counter);
+            });
+            group.setCounter(counter.get());
         }
         return group;
     }
 
     public Collection<Group> buildGroupIdsList(Collection<String> groupIds) {
         Collection<Group> groups = new TreeSet<Group>();
-        for (String groupId : groupIds) {
-            groups.add(buildGroupIds(groupId));
-        }
+        groupIds.forEach(groupId -> groups.add(buildGroupIds(groupId)));
         return groups;
     }
 

@@ -79,10 +79,10 @@ public class ApplePushService {
                             .alertBody(message).build();
 
             Collection<String> deviceIds = appleDeviceRepository.findAppleDevices(login);
-            for (String deviceId : deviceIds) {
+            deviceIds.forEach(deviceId -> {
                 log.debug("Notifying user : {} - device : {}", login, deviceId);
                 apnsService.push(deviceId, payload);
-            }
+            });
 
         } catch (Exception e) {
             log.warn("Apple Push error: " + e.getMessage());
@@ -97,13 +97,13 @@ public class ApplePushService {
         log.info("Checking the Apple Feedback Service for inactive devices");
         try {
             Map<String, Date> inactiveDevices = apnsService.getInactiveDevices();
-            for (String deviceId : inactiveDevices.keySet()) {
+            inactiveDevices.keySet().forEach(deviceId -> {
                 log.debug("Device {} is inactive", deviceId);
                 String login = appleDeviceUserRepository.findLoginForDeviceId(deviceId);
                 log.debug("Removing device for user {}" + login);
                 appleDeviceRepository.removeAppleDevice(login, deviceId);
                 appleDeviceUserRepository.removeAppleDeviceForUser(deviceId);
-            }
+            });
         } catch (Exception e) {
             log.warn("Apple Feedback Service error: " + e.getMessage());
         }

@@ -255,10 +255,7 @@ public class StatusUpdateService {
                         geoLocalization);
 
         if (attachmentIds != null && attachmentIds.size() > 0) {
-            for (String attachmentId : attachmentIds) {
-                statusAttachmentRepository.addAttachmentId(status.getStatusId(),
-                        attachmentId);
-            }
+            attachmentIds.forEach(attachmentId -> statusAttachmentRepository.addAttachmentId(status.getStatusId(), attachmentId));
         }
 
         // add status to the timeline
@@ -307,20 +304,17 @@ public class StatusUpdateService {
             grouplineRepository.addStatusToGroupline(group.getGroupId(), status.getStatusId());
             Collection<String> groupMemberLogins = groupMembersRepository.findMembers(group.getGroupId()).keySet();
             // For all people following the group
-            for (String groupMemberLogin : groupMemberLogins) {
-                addStatusToTimelineAndNotify(groupMemberLogin, status);
-            }
+            groupMemberLogins.forEach(groupMemberLogin -> addStatusToTimelineAndNotify(groupMemberLogin, status));
+
             if (isPublicGroup(group)) { // for people not following the group but following the user
-                for (String followerLogin : followersForUser) {
+                followersForUser.forEach(followerLogin -> {
                     if (!groupMemberLogins.contains(followerLogin)) {
                         addStatusToTimelineAndNotify(followerLogin, status);
                     }
-                }
+                });
             }
         } else { // only people following the user
-            for (String followerLogin : followersForUser) {
-                addStatusToTimelineAndNotify(followerLogin, status);
-            }
+            followersForUser.forEach(followerLogin -> addStatusToTimelineAndNotify(followerLogin, status));
         }
     }
 
@@ -387,16 +381,14 @@ public class StatusUpdateService {
                 tagFollowerRepository.findFollowers(status.getDomain(), tag);
 
         if (isPublicGroup(group)) { // This is a public status
-            for (String followerLogin : followersForTag) {
-                addStatusToTimelineAndNotify(followerLogin, status);
-            }
+            followersForTag.forEach(followerLogin -> addStatusToTimelineAndNotify(followerLogin, status));
         } else {  // This is a private status
-            for (String followerLogin : followersForTag) {
+            followersForTag.forEach(followerLogin -> {
                 Collection<String> groupIds = userGroupRepository.findGroups(followerLogin);
                 if (groupIds.contains(group.getGroupId())) { // The user is part of the private group
                     addStatusToTimelineAndNotify(followerLogin, status);
                 }
-            }
+            });
         }
     }
 

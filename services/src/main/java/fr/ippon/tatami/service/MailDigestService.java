@@ -59,7 +59,7 @@ public class MailDigestService {
 
         String day = String.valueOf(Calendar.getInstance().get(Calendar.DAY_OF_WEEK));
 
-        for (Domain d : domains) {
+        domains.forEach(d -> {
             log.info("Sending daily digest for domain {} and day {}", d, day);
             int pagination = 0;
             List<String> logins;
@@ -68,7 +68,7 @@ public class MailDigestService {
                         DigestType.DAILY_DIGEST, d.getName(), day, pagination);
                 pagination = pagination + logins.size();
 
-                for (String login : logins) {
+                logins.forEach(login -> {
                     try {
                         handleDailyDigestPageForLogin(login);
                     } catch (Exception e) {
@@ -78,9 +78,9 @@ public class MailDigestService {
                         e.printStackTrace(pw);
                         log.debug("{}", stack.toString());
                     }
-                }
+                });
             } while (logins.size() > 0);
-        }
+        });
     }
 
     /**
@@ -113,7 +113,7 @@ public class MailDigestService {
                             day, pagination);
                     pagination = pagination + logins.size();
 
-                    for (String login : logins) {
+                    logins.forEach(login -> {
                         try {
                             handleWeeklyDigestPageForLogin(login);
                         } catch (Exception e) {
@@ -123,7 +123,7 @@ public class MailDigestService {
                             e.printStackTrace(pw);
                             log.debug("{}", stack.toString());
                         }
-                    }
+                    });
                 } while (logins.size() > 0);
             }
         }

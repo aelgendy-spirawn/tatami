@@ -127,9 +127,8 @@ public class CassandraConfiguration {
              */
             List<ColumnFamilyDefinition> lcf = keyspaceDef.getCfDefs();
             List<String> lcfNames = new ArrayList<String>();
-            for(ColumnFamilyDefinition cfd : lcf){
-                lcfNames.add(cfd.getName());
-            }
+            lcf.forEach(element -> lcfNames.add(element.getName()));
+
             // The new tables
             if(!lcfNames.contains(ColumnFamilyKeys.BLOCK_USERS_CF)){
                 addColumnFamily(cluster, ColumnFamilyKeys.BLOCK_USERS_CF, 0);

@@ -58,9 +58,8 @@ public class CassandraDiscussionRepository implements DiscussionRepository {
                 .get();
 
         Collection<String> statusIds = new LinkedHashSet<String>();
-        for (HColumn<Long, String> column : result.getColumns()) {
-            statusIds.add(column.getValue());
-        }
+        result.getColumns().forEach(column -> statusIds.add(column.getValue()));
+
         return statusIds;
     }
 

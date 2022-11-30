@@ -124,9 +124,7 @@ public class CassandraStatusRepository implements StatusRepository {
         Set<ConstraintViolation<Status>> constraintViolations = validator.validate(status);
         if (!constraintViolations.isEmpty()) {
             if (log.isDebugEnabled()) {
-                for (ConstraintViolation cv : constraintViolations) {
-                    log.debug("Constraint violation: {}", cv.getMessage());
-                }
+                constraintViolations.forEach(cv -> log.debug("Constraint violation: {}", cv.getMessage()));
             }
             throw new ConstraintViolationException(new HashSet<ConstraintViolation<?>>(constraintViolations));
         }
@@ -363,17 +361,18 @@ public class CassandraStatusRepository implements StatusRepository {
         if (status.getHasAttachments() != null && status.getHasAttachments()) {
             Collection<String> attachmentIds = statusAttachmentRepository.findAttachmentIds(statusId);
             Collection<Attachment> attachments = new ArrayList<Attachment>();
-            for (String attachmentId : attachmentIds) {
-                Attachment attachment = attachmentRepository.findAttachmentMetadataById(attachmentId);
+            attachments.forEach(attachmentId -> {
+                Attachment attachment = attachmentRepository.findAttachmentMetadataById(String.valueOf(attachmentId));
                 if (attachment != null) {
                     // We copy everything excepted the attachment content, as we do not want it in the status cache
                     Attachment attachmentCopy = new Attachment();
-                    attachmentCopy.setAttachmentId(attachmentId);
+                    attachmentCopy.setAttachmentId(String.valueOf(attachmentId));
                     attachmentCopy.setSize(attachment.getSize());
                     attachmentCopy.setFilename(attachment.getFilename());
                     attachments.add(attachment);
                 }
-            }
+            });
+
             status.setAttachments(attachments);
         }
         return status;
