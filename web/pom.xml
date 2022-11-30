@@ -91,14 +91,14 @@
                 <groupId>com.kelveden</groupId>
                 <artifactId>maven-karma-plugin</artifactId>
                 <version>1.6</version>
-                <executions>
+		<!-- <executions>
                     <execution>
                         <phase>test</phase>
                         <goals>
                             <goal>start</goal>
                         </goals>
                     </execution>
-                </executions>
+		</executions> -->
                 <configuration>
                     <karmaExecutable>${project.basedir}/node_modules/.bin/karma</karmaExecutable>
                     <configFile>${project.basedir}/karma.ci.conf.js</configFile>
